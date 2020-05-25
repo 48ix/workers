@@ -1,5 +1,5 @@
 /**
- * This worker script is used to send the form values from the "Join 48 IX" form on
+ * This worker script is used to send the form values from the "Request Slack Invite" form on
  * the main website (48ix.net) to a predefined Slack channel to handle such requests.
  *
  * The handler expects JSON data in the request body, transforms that data into a
@@ -15,53 +15,27 @@ const WEBHOOK_URL = SLACK_WEBHOOK_URL;
 /**
  * Construct a Slack message.
  * @param {Object} cf Cloudflare `cf` object
- * @param {Header} headers fetch Headers from inbound event
- * @param {string} memberName Organization Name
- * @param {string} memberAsn Organization ASN
+ * @param {Headers} headers fetch Headers from inbound event
  * @param {string} contactName Organization Contact Name
  * @param {string} contactEmail Organization Contact Email Address
- * @param {string} facilityName 48 IX Facility Name
- * @param {number} portSpeed Port Speed, 1 or 10
  * @param {number} timestamp UNIX timestamp
  */
-const makeMessage = (
-  cf,
-  headers,
-  memberName,
-  memberAsn,
-  contactName,
-  contactEmail,
-  facilityName,
-  portSpeed,
-  timestamp,
-) => ({
+const makeMessage = (cf, headers, contactName, contactEmail, timestamp) => ({
   attachments: [
     {
-      fallback: `${memberName} (AS${memberAsn}) @ ${facilityName}`,
+      fallback: `${contactName} has requested a Slack invite`,
       color: '#47f2ff',
-      pretext: 'New Member Request',
-      title: memberName,
-      title_link: `https://peeringdb.com/asn/${memberAsn}`,
-      text: `AS${memberAsn}`,
+      pretext: 'New Slack Invite Request',
+      title: `Slack Invitation Request from ${contactName}`,
       fields: [
         {
           title: 'Contact Name',
           value: contactName,
-          short: false,
+          short: true,
         },
         {
-          title: 'Contact Email',
+          title: 'Email Address',
           value: contactEmail,
-          short: true,
-        },
-        {
-          title: 'Facility',
-          value: facilityName,
-          short: true,
-        },
-        {
-          title: 'Desired Port Speed',
-          value: `${portSpeed} Gbps`,
           short: true,
         },
         {
@@ -101,28 +75,10 @@ const makeMessage = (
  */
 const handleRequest = async request => {
   // Destructure request body as JSON.
-  const {
-    memberName,
-    memberAsn,
-    contactName,
-    contactEmail,
-    facilityName,
-    portSpeed,
-    timestamp,
-  } = await request.json();
+  const { contactName, emailAddr } = await request.json();
 
   // Construct a Slack message from the input data.
-  const message = makeMessage(
-    request.cf || {},
-    request.headers || {},
-    memberName,
-    memberAsn,
-    contactName,
-    contactEmail,
-    facilityName,
-    portSpeed,
-    timestamp,
-  );
+  const message = makeMessage(request.cf || {}, request.headers || {}, contactName, emailAddr);
 
   // Send the constructed Slack message.
   const slackRes = await fetch(WEBHOOK_URL, {
