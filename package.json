@@ -1,0 +1,14 @@
+{
+  "name": "48ix-workers",
+  "version": "0.0.1",
+  "description": "Worker Scripts for Various 48 IX Functions",
+  "main": "index.js",
+  "author": "checktheroads <matt@allroads.io>",
+  "license": "MIT",
+  "devDependencies": {
+    "@upstatement/eslint-config": "^0.4.3",
+    "@upstatement/prettier-config": "^0.3.0",
+    "eslint": "^7.1.0",
+    "prettier": "^2.0.5"
+  }
+}
