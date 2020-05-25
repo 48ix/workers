@@ -4,7 +4,7 @@ This repository is a container for multiple likely unrelated worker scripts, use
 
 ## Contents
 
-| Script            | Purpose                                    |
-| :---------------- | :----------------------------------------- |
-| `mailing-list.js` | Handles mailing list subscription requests |
-
+| Script                  | Purpose                                    |
+| :---------------------- | :----------------------------------------- |
+| `src/mailing-list.js`   | Handles mailing list subscription requests |
+| `src/member-request.js` | Sends membership join requests to Slack    |
