@@ -28,6 +28,52 @@ const MJ_TEMPLATE = 'https://api.mailjet.com/v3/REST/template';
 const MJ_LIST_RECIPIENT = 'https://api.mailjet.com/v3/REST/listrecipient';
 const MJ_SEND = 'https://api.mailjet.com/v3.1/send';
 
+// Slack webhook variable, consumed via environment variables in scope via Cloudflare.
+const SLACK_URL = SLACK_WEBHOOK_URL;
+
+/**
+ * Generate a Slack message.
+ * @param {string} emailAddr Contact Email Address
+ * @param {string} listName Contact List Name
+ * @param {string=} errorMsg Error Message, if any
+ */
+const makeMessage = (emailAddr, listName, errorMsg) => {
+  const payload = {
+    attachments: [
+      {
+        fallback: `${emailAddr} has subscribed to ${listName}`,
+        color: '#f4dc87',
+        pretext: 'New mailing list subscription',
+        title: `${emailAddr} has subscribed to ${listName}`,
+      },
+    ],
+  };
+  if (errorMsg) {
+    payload.attachments[0].color = '#f25979';
+    payload.attachments[0].fields = [{ title: 'Error', value: errorMsg, short: false }];
+  }
+  return payload;
+};
+
+/**
+ * Send a message to Slack when a user subscribes, or when an error occurs.
+ * @param {string} emailAddr Contact Email Address
+ * @param {string} listName Contact List Name
+ * @param {string=} errorMsg Error Message, if any
+ */
+const notifySlack = async (emailAddr, listName, errorMsg) => {
+  try {
+    const response = await fetch(SLACK_URL, {
+      method: 'POST',
+      headers: new Headers({ 'Content-Type': 'application/json' }),
+      body: JSON.stringify(makeMessage(emailAddr, listName, errorMsg)),
+    });
+    return response;
+  } catch (err) {
+    console.error(err);
+  }
+};
+
 /**
  * Custom Error Class.
  * @param {...*} args Arguments
@@ -592,6 +638,9 @@ const handleRequest = async request => {
 
       // If the contact was successfully subscribed, redirect the user to the subscription success page.
       if (subscribed) {
+        // Send a Slack notification of a successful subscription.
+        await notifySlack(emailAddr, listName);
+
         return Response.redirect(`https://48ix.net/subscribe?${encodedInfo}`, 301);
       }
       // If an error occurred while subscribing the contact, redirect the user to the subscription failure page.
@@ -604,6 +653,9 @@ const handleRequest = async request => {
             ),
           );
         }
+        // Send a slack notification of a failed subscription.
+        await notifySlack(emailAddr, listName, error.message);
+
         return Response.redirect(`https://48ix.net/subscribe/failure?${encodedInfo}`, 301);
       }
     }
