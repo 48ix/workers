@@ -536,7 +536,6 @@ const handleRequest = async request => {
 
   // Find out if the contact has already been DEFINED (not necessarily subscribed or associated with a list)
   const { id: contactId, exists } = await getContact(emailAddr);
-
   if (exists) {
     contactExists = true;
 
@@ -549,6 +548,13 @@ const handleRequest = async request => {
 
       if (contactList.subscribed) {
         alreadySubscribed = true;
+      }
+    } else {
+      // If the contact is already added to MailJet, add it to the contact list `listName`
+      const { addedToList, error } = await addContactToList(listDetails.id, emailAddr);
+
+      if (addedToList) {
+        onList = true;
       }
     }
   } else {
