@@ -22,6 +22,7 @@ const WEBHOOK_URL = SLACK_WEBHOOK_URL;
  * @param {string} contactEmail Organization Contact Email Address
  * @param {string} facilityName 48 IX Facility Name
  * @param {number} portSpeed Port Speed, 1 or 10
+ * @param {string} term Term, monthly or annual
  * @param {number} timestamp UNIX timestamp
  */
 const makeMessage = (
@@ -33,6 +34,7 @@ const makeMessage = (
   contactEmail,
   facilityName,
   portSpeed,
+  term,
   timestamp,
 ) => ({
   attachments: [
@@ -62,6 +64,11 @@ const makeMessage = (
         {
           title: 'Desired Port Speed',
           value: `${portSpeed} Gbps`,
+          short: true,
+        },
+        {
+          title: 'Term',
+          value: term.charAt(0).toUpperCase() + term.slice(1),
           short: true,
         },
         {
@@ -108,6 +115,7 @@ const handleRequest = async request => {
     contactEmail,
     facilityName,
     portSpeed,
+    term,
     timestamp,
   } = await request.json();
 
@@ -121,6 +129,7 @@ const handleRequest = async request => {
     contactEmail,
     facilityName,
     portSpeed,
+    term,
     timestamp,
   );
 
